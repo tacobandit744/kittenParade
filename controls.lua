@@ -1,0 +1,9 @@
+names = {"MILKY", "MARMY", "SNAIL", "SPOON"}
+left = "a"
+right = "d"
+down = "s"
+up = "w"
+pause_button = "p"
+auto_move_button = "e"
+shift="lshift"
+exit_button = "q"
