@@ -18,42 +18,7 @@ player={
 kittens = {}
 grenades = {}
 dogs = {}
-
-enemies={
-	--[[{
-		move = 150,
-		run = 200,
-		old_x = 50,
-		old_y = 1400,
-		x = 50,
-		y = 1400,
-		width = 100,
-		height = 100,
-		detection=500,
-		seek_noise= love.audio.newSource("audio/spooder.wav", "stream"),
-		anim=love.graphics.newImage("anims/spooder1_quad.png"),
-		anim_frame=0,
-		max_frames=4,
-		r=0.1, g=0.8, b=0.2
-	},
-	{
-		move = 200,
-		run = 250,
-		old_x = 1800,
-		old_y = 1400,
-		x = 1800,
-		y = 1400,
-		width = 75,
-		height = 100,
-		detection=800,
-		anim=love.graphics.newImage("anims/spooder2_quad.png"),
-		anim_frame=0,
-		max_frames=4,
-		seek_noise= love.audio.newSource("audio/spooder2.wav", "stream"),
-		r=0.1, g=0.2, b=0.6
-	}
-	--]]
-}
+explosions = {}
 
 function move_player(dt)
 	player.old_x = player.x
@@ -114,15 +79,20 @@ end
 function dog_ai(dt)
 	for i, dog in ipairs(dogs) do
 		dog.timeTillThrow = dog.timeTillThrow - dt
-		if (dog.timeTillThrow <= 0 and dog.numThrown < dog.maxThrows) then
-			local nearest_cat = get_nearest_cat(dog.x, dog.y)
-			if (nearest_cat > 0) then
-				local cat = kittens[nearest_cat]
-				local angle = math.pi/2 + math.atan2(dog.x-cat.x +math.random(-5, 5), dog.y-cat.y +math.random(-5, 5))
-				generate_new_grenade(dog.x, dog.y, angle, math.random(40, 60))
+		if dog.timeTillThrow <= 0 then
+			if dog.numThrown < dog.maxThrows then
+				local nearest_cat = get_nearest_cat(dog.x, dog.y)
+				if nearest_cat ~= nil then
+					local cat = kittens[nearest_cat]
+					local angle = math.pi/2 + math.atan2(dog.x-cat.x +math.random(-5, 5), dog.y-cat.y +math.random(-5, 5))
+					generate_new_grenade(dog.x, dog.y, angle, math.random(40, 60))
+					dog.timeTillThrow = 6
+					dog.numThrown = dog.numThrown + 1
+				end
+			else 
+				remove_dog(i)
+				currDogsOnScreen = currDogsOnScreen - 1
 			end
-			dog.timeTillThrow = 6
-			dog.numThrown = dog.numThrown + 1
 		end
 	end
 end
@@ -150,7 +120,7 @@ function generate_new_dog()
 		y = spawnY,
 		timeTillThrow = 6,
 		numThrown = 0,
-		maxThrows = 3,
+		maxThrows = math.random(1,3),
 		blastRadius = 400,
 		width = size,
 		height = size,
@@ -161,10 +131,19 @@ end
 
 function generate_dog_spawn(dogSize)
 	local width, height = love.graphics.getDimensions()
-	-- first define left and right bounds based on percentage of canvas width
-	--local x = math.random(0, width)
-	--local y = math.random(0, height)
-	return 400, 400
+	local leftDisplacement = (0.15 * width)
+	local rightDisplacement = (0.85 * width)
+	local topDisplacement = (0.1 * height)
+	local bottomDisplacement = (0.9 * height)
+	local x = math.random(leftDisplacement+ dogSize, rightDisplacement+dogSize)
+	local y = 0
+	local hemisphere = math.random(2)
+	if hemisphere == 1 then
+		y = math.random(topDisplacement+dogSize, (height/2) - (0.2 * height))
+	else
+		y = math.random((height/2) + (0.2 * height), bottomDisplacement-dogSize)
+	end
+	return x, y
 end
 
 function remove_kitten(index)
@@ -178,7 +157,7 @@ end
 
 function generate_new_grenade(spawnX, spawnY, angle, spawnAccel)
 	local width, height = love.graphics.getDimensions()
-	local size = (0.025 * width)
+	local size = 80
 	table.insert(grenades, {
 		timer = 3,
 		speed = 0,
@@ -194,29 +173,22 @@ function generate_new_grenade(spawnX, spawnY, angle, spawnAccel)
 	})
 end
 
+function generate_new_explosion(spawnX, spawnY)
+	table.insert(explosions, {
+		timer = 1,
+		x = spawnX,
+		y = spawnY,
+		anim = love.graphics.newImage("images/props/explosion.png")
+	})
+end
+
 function remove_grenade(index)
 	table.remove(grenades, index)
 end
 
---[[function move_enemies(dt)
-	for i,enemy in ipairs(enemies) do
-		enemy.old_x = enemy.x
-		enemy.old_y = enemy.y
-		detected_player = check_detection(player, enemy)
-		if detected_player then
-			enemy.seek_noise:play()
-			local angle = math.pi/2 + math.atan2(enemy.x-player.x, enemy.y-player.y)
-			enemy.x = enemy.x + math.cos(angle)*enemy.run*dt
-			enemy.y = enemy.y - math.sin(angle)*enemy.run*dt
-		end
-		for i,wall in ipairs(walls) do
-			wall_collision = check_collision(enemy, wall)
-			if wall_collision then resolve_collision(enemy, wall) end
-		end
-		player_dead = check_collision(enemy, player)
-		if player_dead then dead = true end
-	end
-end--]]
+function remove_explosion(index)
+	table.remove(explosions, index)
+end
 
 function move_kittens(dt)
 	for i, kitten in ipairs(kittens) do
@@ -237,19 +209,19 @@ function move_grenades(dt)
 		grenade.y = grenade.y - math.sin(grenade.direction)*grenade.speed*dt
 		grenade.speed = grenade.speed + grenade.acceleration
 		grenade.acceleration = grenade.acceleration - (100*dt)
-		if grenade.speed < 0 then
-			grenade.speed = 0
-			grenade.acceleration = 0
-		end
-		grenade.timer = grenade.timer - dt
-		if grenade.timer <= 0 then
-			remove_grenade(i)
-			--score = score + 1
-			--update_score()
-		end
 		for i,wall in ipairs(walls) do
 			wall_collision = check_collision(grenade, wall)
 			if wall_collision then resolve_elastic_collision(grenade, wall) end
+		end
+		grenade.timer = grenade.timer - dt
+		if grenade.timer <= 0 then
+			generate_new_explosion(grenade.x, grenade.y)
+			remove_grenade(i)
+			-- TODO: handle cat deaths and dog deaths/player death here
+		end
+		if grenade.speed < 0 then
+			grenade.speed = 0
+			grenade.acceleration = 0
 		end
 	end
 end
@@ -273,6 +245,15 @@ function check_collision(a, b)
 	and a.x < b.x + b.width
     and a.y + a.height > b.y
     and a.y < b.y + b.height
+end
+
+function clear_explosions(dt)
+	for i, explosion in ipairs(explosions) do
+		explosion.timer = explosion.timer - dt
+		if explosion.timer <= 0 then
+			remove_explosion(i)
+		end
+	end
 end
 
 function resolve_collision(a, b)
@@ -323,24 +304,6 @@ function resolve_elastic_collision(a, b)
         end
 		a.direction = -1 * a.direction
 	end
-end
---[[
-function move_camera()
-	love.graphics.translate(-math.floor(player.x / width) * width,-math.floor(player.y/height) * height)
-end
-
-function check_all_parts_found(bed)
-	local count = 0
-	for i, bed_part in ipairs(bed) do
-		if bed_part.found then count = count + 1 end
-	end
-	if count == 4 then
-		all_parts_found = true
-	end
-end
-
-function check_win(bedroom_area)
-	if check_collision(player, bedroom_area) then win = true end
 end
 
 function update_animations(dt)
