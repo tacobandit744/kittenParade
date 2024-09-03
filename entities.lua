@@ -306,7 +306,7 @@ function resolve_elastic_collision(a, b)
 	end
 end
 
-function update_animations(dt)
+--[[function update_animations(dt)
 	for i,enemy in ipairs(enemies) do
 		enemy.anim_frame = enemy.anim_frame+10*dt
 		if enemy.anim_frame >= enemy.max_frames-1 then enemy.anim_frame = 0 end
