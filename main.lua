@@ -11,9 +11,10 @@ function love.update(dt)
 	--update_animations(dt)
 	move_player(dt)
 	spawn_kittens(dt)
+	spawn_dogs(dt)
+	dog_ai(dt)
 	move_kittens(dt)
 	move_grenades(dt)
-	--TODO: handle removal of grenades and kittens
 end
 
 function love.draw()
@@ -32,6 +33,9 @@ function love.draw()
 	for i, dog in ipairs(dogs) do
 		love.graphics.setColor(tonumber(dog.r), tonumber(dog.g), tonumber(dog.b))
 		love.graphics.draw(dog.anim, dog.x, dog.y)
+	end
+	for i, grenade in ipairs(grenades) do
+		love.graphics.draw(grenade.anim, grenade.x, grenade.y)
 	end
 	love.graphics.setColor(1,1,1)
 end

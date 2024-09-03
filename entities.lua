@@ -15,13 +15,9 @@ player={
 	b=0
 }
 
-kittens = {
-
-}
-
-grenades = {
-
-}
+kittens = {}
+grenades = {}
+dogs = {}
 
 enemies={
 	--[[{
@@ -59,7 +55,7 @@ enemies={
 	--]]
 }
 
-function move_player(dt, bed)
+function move_player(dt)
 	player.old_x = player.x
 	player.old_y = player.y
 	if love.keyboard.isDown(left) then
@@ -97,30 +93,109 @@ function move_player(dt, bed)
 end
 
 function spawn_kittens(dt)
-	if currTime + dt >= timeCatSpawn and currCatSpawn < numCatSpawn then
+	if currTimeCatSpawn + dt >= timeCatSpawn and currCatSpawn < numCatSpawn then
 		generate_new_kitten()
-		currTime = 0
+		currTimeCatSpawn = 0
 		currCatSpawn = currCatSpawn + 1
 	end
-	currTime = currTime + dt
+	currTimeCatSpawn = currTimeCatSpawn + dt
 end
 
+function spawn_dogs(dt)
+	if currTimeDogSpawn + dt >= timeDogSpawn and currDogsOnScreen < maxDogsOnScreen and currDogSpawn < numDogSpawn then
+		generate_new_dog()
+		currTimeDogSpawn = 0
+		currDogSpawn = currDogSpawn + 1
+		currDogsOnScreen = currDogsOnScreen + 1
+	end
+	currTimeDogSpawn = currTimeDogSpawn + dt
+end
+
+function dog_ai(dt)
+	for i, dog in ipairs(dogs) do
+		dog.timeTillThrow = dog.timeTillThrow - dt
+		if (dog.timeTillThrow <= 0 and dog.numThrown < dog.maxThrows) then
+			local nearest_cat = get_nearest_cat(dog.x, dog.y)
+			if (nearest_cat > 0) then
+				local cat = kittens[nearest_cat]
+				local angle = math.pi/2 + math.atan2(dog.x-cat.x +math.random(-5, 5), dog.y-cat.y +math.random(-5, 5))
+				generate_new_grenade(dog.x, dog.y, angle, math.random(40, 60))
+			end
+			dog.timeTillThrow = 6
+			dog.numThrown = dog.numThrown + 1
+		end
+	end
+end
 
 function generate_new_kitten() 
 	local width, height = love.graphics.getDimensions()
+	local size = (0.05 * width)
 	table.insert(kittens, {
 		move = 50,
 		x = width,
 		y = (height/2) -50,
-		width = 100,
-		height = 100,
-		anim=love.graphics.newImage("images/kitten_160x90.png"),
+		width = size,
+		height = size,
+		anim=love.graphics.newImage("images/cats/kitten1.png"),
 		r=math.random(), g=math.random(), b=math.random()
 	})
 end
 
+function generate_new_dog() 
+	local width, height = love.graphics.getDimensions()
+	local size = (0.05 * width)
+	local spawnX, spawnY = generate_dog_spawn(size)
+	table.insert(dogs, {
+		x = spawnX,
+		y = spawnY,
+		timeTillThrow = 6,
+		numThrown = 0,
+		maxThrows = 3,
+		blastRadius = 400,
+		width = size,
+		height = size,
+		anim=love.graphics.newImage("images/dogs/dog"..math.random(5)..".png"),
+		r=math.random(), g=math.random(), b=math.random()
+	})
+end
+
+function generate_dog_spawn(dogSize)
+	local width, height = love.graphics.getDimensions()
+	-- first define left and right bounds based on percentage of canvas width
+	--local x = math.random(0, width)
+	--local y = math.random(0, height)
+	return 400, 400
+end
+
 function remove_kitten(index)
 	table.remove(kittens, index)
+end
+
+function remove_dog(index)
+	table.remove(dogs, index)
+	currDogsOnscreen = currDogsOnScreen - 1
+end
+
+function generate_new_grenade(spawnX, spawnY, angle, spawnAccel)
+	local width, height = love.graphics.getDimensions()
+	local size = (0.025 * width)
+	table.insert(grenades, {
+		timer = 3,
+		speed = 0,
+		acceleration = spawnAccel,
+		old_x = spawnX,
+		old_y = spawnY,
+		x = spawnX,
+		y = spawnY,
+		direction = angle,
+		width = size,
+		height = size,
+		anim=love.graphics.newImage("images/props/grenade.png")
+	})
+end
+
+function remove_grenade(index)
+	table.remove(grenades, index)
 end
 
 --[[function move_enemies(dt)
@@ -155,11 +230,42 @@ function move_kittens(dt)
 end
 
 function move_grenades(dt)
-
+	for i, grenade in ipairs(grenades) do
+		grenade.old_x = grenade.x
+		grenade.old_y = grenade.y
+		grenade.x = grenade.x + math.cos(grenade.direction)*grenade.speed*dt
+		grenade.y = grenade.y - math.sin(grenade.direction)*grenade.speed*dt
+		grenade.speed = grenade.speed + grenade.acceleration
+		grenade.acceleration = grenade.acceleration - (100*dt)
+		if grenade.speed < 0 then
+			grenade.speed = 0
+			grenade.acceleration = 0
+		end
+		grenade.timer = grenade.timer - dt
+		if grenade.timer <= 0 then
+			remove_grenade(i)
+			--score = score + 1
+			--update_score()
+		end
+		for i,wall in ipairs(walls) do
+			wall_collision = check_collision(grenade, wall)
+			if wall_collision then resolve_elastic_collision(grenade, wall) end
+		end
+	end
 end
 
-function remove_grenade(index)
-
+function get_nearest_cat(dogX, dogY)
+	local distance = nil
+	local currDistance = 0
+	local catIndex = nil
+	for i, kitten in ipairs(kittens) do
+		currDistance = math.sqrt( ((dogX - kitten.x) ^ 2) + ((dogY - kitten.y) ^ 2))
+		if distance == nil or currDistance < distance then 
+			distance = currDistance
+			catIndex = i
+		end
+	end
+	return catIndex
 end
 
 function check_collision(a, b)
@@ -190,6 +296,32 @@ function resolve_collision(a, b)
             local pushback = b.y + b.height - a.y
             a.y = a.y + pushback
         end
+	end
+end
+
+function resolve_elastic_collision(a, b)
+	if a.old_y < b.old_y + b.height and a.old_y + a.height > b.old_y then
+		if a.x + a.width/2 < b.x + a.width/2  then
+            -- pushback = the right side of the player - the left side of the wall
+            local pushback = a.x + a.width - b.x
+            a.x = a.x - pushback
+        else
+            -- pushback = the right side of the wall - the left side of the player
+            local pushback = b.x + b.width - a.x
+            a.x = a.x + pushback
+        end
+		a.direction = -1 * a.direction
+	elseif a.old_x < b.old_x + b.width and a.old_x + a.width > b.old_x then
+		if a.y + a.height/2 < b.y + a.height/2 then
+            -- pushback = the bottom side of the player - the top side of the wall
+            local pushback = a.y + a.height - b.y
+            a.y = a.y - pushback
+        else
+            -- pushback = the bottom side of the wall - the top side of the player
+            local pushback = b.y + b.height - a.y
+            a.y = a.y + pushback
+        end
+		a.direction = -1 * a.direction
 	end
 end
 --[[

@@ -5,13 +5,15 @@ level = {}
 -- Cat Spawn Logic
 currCatSpawn = 0
 numCatSpawn = 5
-currTime = 0
+currTimeCatSpawn = 0
 timeCatSpawn = 5 -- seconds
 -- Dog Spawn Logic
 currDogSpawn = 0
-maxDogs = 2
+maxDogsOnScreen = 2
+currDogsOnScreen = 0
 numDogSpawn = 5
-timedogSpawn = 7
+currTimeDogSpawn = 0
+timeDogSpawn = 7
 score = 0
 level["canvas"] = love.graphics.newCanvas(width, height)
 

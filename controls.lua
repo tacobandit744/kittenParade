@@ -1,4 +1,3 @@
-names = {"MILKY", "MARMY", "SNAIL", "SPOON"}
 left = "a"
 right = "d"
 down = "s"
