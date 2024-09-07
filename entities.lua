@@ -206,12 +206,16 @@ function generate_new_grenade(spawnX, spawnY, angle, spawnAccel)
 end
 
 function generate_new_explosion(spawnX, spawnY)
-	table.insert(explosions, {
+	new_explosion = {
 		timer = 1,
 		x = spawnX,
 		y = spawnY,
+		width = 100,
+		height = 100,
 		anim = love.graphics.newImage("images/props/explosion.png")
-	})
+	}
+	table.insert(explosions, new_explosion)
+	return new_explosion
 end
 
 function remove_grenade(index)
@@ -249,9 +253,15 @@ function move_grenades(dt)
 		if check_collision(grenade, tennis_racket) then resolve_elastic_collision(grenade, tennis_racket) end
 		grenade.timer = grenade.timer - dt
 		if grenade.timer <= 0 then
-			generate_new_explosion(grenade.x, grenade.y)
+			explosion = generate_new_explosion(grenade.x, grenade.y)
 			remove_grenade(i)
-			-- TODO: handle cat deaths and dog deaths/player death here
+			for j, kitten in ipairs(kittens) do
+				if check_collision(kitten, explosion) then
+					remove_kitten(j)
+					score = score - 1
+					update_score()
+				end
+			end
 		end
 		if grenade.speed < 0 then
 			grenade.speed = 0
