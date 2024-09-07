@@ -15,6 +15,7 @@ numDogSpawn = 5
 currTimeDogSpawn = 0
 timeDogSpawn = 7
 score = 0
+debug = false
 level["canvas"] = love.graphics.newCanvas(width, height)
 
 -- hand gen for levels right now
@@ -32,9 +33,16 @@ level_font = love.graphics.newFont(24)
 level["tip1_text"] = "Score: " .. score
 level["tip1_width"] = level_font:getWidth(level["tip1_text"])
 level["tip1"] = love.graphics.newText(level_font, level["tip1_text"])
+level["debug_racket"] = "X: " .. tennis_racket.x .. ", Y: ".. tennis_racket.y .. ", distance: ".. getDistance(tennis_racket.x, player.x , tennis_racket.y, player.y)
+level["debug"] = love.graphics.newText(level_font, level["debug_racket"])
 
 function update_score()
 	level["tip1_text"] = "Score: " .. score
 	level["tip1"] = love.graphics.newText(level_font, level["tip1_text"])
+end
+
+function debug()
+	level["debug_racket"] = "X: " .. tennis_racket.x .. ", Y: ".. tennis_racket.y .. ", distance: ".. getDistance(tennis_racket.x, player.x , tennis_racket.y, player.y)
+	level["debug"] = love.graphics.newText(level_font, level["debug_racket"])
 end
 

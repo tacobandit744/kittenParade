@@ -9,10 +9,22 @@ player={
 	y = 40,
 	width = 25,
 	height = 25,
+	diameter = 200,
 	--collect= love.audio.newSource("audio/collect.wav", "stream"),
 	r=1,
 	g=1,
 	b=0
+}
+
+tennis_racket={
+	old_x = 20,
+	old_y = 50,
+	x = 20,
+	y = 50,
+	-- hitbox for the tennis racket will be a square
+	width = 30,
+	height = 30,
+	anim=love.graphics.newImage("images/props/racket.png"),
 }
 
 kittens = {}
@@ -54,6 +66,26 @@ function move_player(dt)
 	for i,wall in ipairs(walls) do
 		wall_collision = check_collision(player, wall)
 		if wall_collision then resolve_collision(player, wall) end
+	end
+end
+
+function move_racket(dt)
+	local mouse_x, mouse_y = love.mouse.getPosition()
+	tennis_racket.old_x = tennis_racket.x
+	tennis_racket.old_y = tennis_racket.y
+	--Make the racket move towards the mouse
+    tennis_racket.x = mouse_x
+    tennis_racket.y = mouse_y
+	-- Limit racket movement within player radius
+	if getDistance(tennis_racket.x, player.x , tennis_racket.y, player.y) > player.diameter/2 then
+		radius = player.diameter/2
+		angle = math.atan2(tennis_racket.y - player.y, tennis_racket.x - player.x)
+		cos = math.cos(angle)
+		sin = math.sin(angle)
+		tangent_x = radius * cos
+		tangent_y = radius * sin
+		tennis_racket.x = tangent_x + (player.x)
+		tennis_racket.y = tangent_y + (player.y)
 	end
 end
 
@@ -304,6 +336,18 @@ function resolve_elastic_collision(a, b)
         end
 		a.direction = -1 * a.direction
 	end
+end
+
+function getDistance(x1, x2, y1, y2) -- shamelessly stolen from sheepolution
+    local horizontal_distance = x1 - x2
+    local vertical_distance = y1 - y2
+    --Both of these work
+    local a = horizontal_distance * horizontal_distance
+	local b = vertical_distance * vertical_distance
+
+    local c = a + b
+    local distance = math.sqrt(c)
+    return distance
 end
 
 --[[function update_animations(dt)

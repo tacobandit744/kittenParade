@@ -9,7 +9,9 @@ end
 
 function love.update(dt)
 	--update_animations(dt)
+	if debug == true then debug() end
 	move_player(dt)
+	move_racket(dt)
 	spawn_kittens(dt)
 	spawn_dogs(dt)
 	dog_ai(dt)
@@ -21,11 +23,16 @@ end
 function love.draw()
 	-- draw the level and scorebar
 	love.graphics.draw(level["tip1"],math.floor(player.x/width)*width+20, math.floor(player.y/height)*height+20)
+	if debug == true then love.graphics.draw(level["debug"],math.floor(player.x/width)*width+20, math.floor(player.y/height)*height+40) end
 	love.graphics.setBackgroundColor(0.3, 0.3, 0.3)
 	love.graphics.draw(level["canvas"], 0, 0)
 	-- draw the player
 	love.graphics.setColor(tonumber(player.r), tonumber(player.g), tonumber(player.b))
 	love.graphics.rectangle("fill",player.x, player.y, player.width, player.height)
+	-- draw the player's tennis racket
+	love.graphics.draw(tennis_racket.anim, tennis_racket.x, tennis_racket.y)
+	-- draw the racket radius around the player
+	love.graphics.circle("line", player.x + (0.5 * player.width), player.y + (0.5 * player.height), player.diameter/2)
 	-- draw the kittens
 	for i,kitten in ipairs(kittens) do
 		love.graphics.setColor(tonumber(kitten.r), tonumber(kitten.g), tonumber(kitten.b))
