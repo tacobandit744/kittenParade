@@ -245,6 +245,8 @@ function move_grenades(dt)
 			wall_collision = check_collision(grenade, wall)
 			if wall_collision then resolve_elastic_collision(grenade, wall) end
 		end
+		--check collision with racket
+		if check_collision(grenade, tennis_racket) then resolve_elastic_collision(grenade, tennis_racket) end
 		grenade.timer = grenade.timer - dt
 		if grenade.timer <= 0 then
 			generate_new_explosion(grenade.x, grenade.y)
