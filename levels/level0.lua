@@ -4,14 +4,14 @@ local width, height = love.graphics.getDimensions()
 level = {}
 -- Cat Spawn Logic
 currCatSpawn = 0
-numCatSpawn = 5
+numCatSpawn = 15
 currTimeCatSpawn = 0
 timeCatSpawn = 5 -- seconds
 -- Dog Spawn Logic
 currDogSpawn = 0
 maxDogsOnScreen = 2
 currDogsOnScreen = 0
-numDogSpawn = 5
+numDogSpawn = 9
 currTimeDogSpawn = 0
 timeDogSpawn = 7
 score = 0

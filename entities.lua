@@ -91,6 +91,8 @@ end
 
 function spawn_kittens(dt)
 	if currTimeCatSpawn + dt >= timeCatSpawn and currCatSpawn < numCatSpawn then
+		local spawnSound = love.audio.newSource("sounds/catspawn.mp3", "stream")
+		love.audio.play(spawnSound)
 		generate_new_kitten()
 		currTimeCatSpawn = 0
 		currCatSpawn = currCatSpawn + 1
@@ -100,6 +102,8 @@ end
 
 function spawn_dogs(dt)
 	if currTimeDogSpawn + dt >= timeDogSpawn and currDogsOnScreen < maxDogsOnScreen and currDogSpawn < numDogSpawn then
+		local spawnSound = love.audio.newSource("sounds/dogalert"..math.random(1,2)..".mp3", "stream")
+		love.audio.play(spawnSound)
 		generate_new_dog()
 		currTimeDogSpawn = 0
 		currDogSpawn = currDogSpawn + 1
@@ -117,6 +121,8 @@ function dog_ai(dt)
 				if nearest_cat ~= nil then
 					local cat = kittens[nearest_cat]
 					local angle = math.pi/2 + math.atan2(dog.x-cat.x +math.random(-5, 5), dog.y-cat.y +math.random(-5, 5))
+					local throwSound = love.audio.newSource("sounds/throw.mp3", "stream")
+					love.audio.play(throwSound)
 					generate_new_grenade(dog.x, dog.y, angle, math.random(40, 60))
 					dog.timeTillThrow = 6
 					dog.numThrown = dog.numThrown + 1
@@ -230,6 +236,8 @@ function move_kittens(dt)
 	for i, kitten in ipairs(kittens) do
 		kitten.x = kitten.x - (dt* kitten.move)
 		if kitten.x <= 0 - kitten.width then
+			local exitSound = love.audio.newSource("sounds/catexit.mp3", "stream")
+			love.audio.play(exitSound)
 			remove_kitten(i)
 			score = score + 1
 			update_score()
@@ -253,12 +261,25 @@ function move_grenades(dt)
 		if check_collision(grenade, tennis_racket) then resolve_elastic_collision(grenade, tennis_racket) end
 		grenade.timer = grenade.timer - dt
 		if grenade.timer <= 0 then
+			local explosionSound = love.audio.newSource("sounds/explosion"..math.random(1,2)..".mp3", "stream")
+			love.audio.play(explosionSound)
 			explosion = generate_new_explosion(grenade.x, grenade.y)
 			remove_grenade(i)
 			for j, kitten in ipairs(kittens) do
 				if check_collision(kitten, explosion) then
+					local deathSound = love.audio.newSource("sounds/gib"..math.random(1,2)..".mp3", "stream")
+					love.audio.play(deathSound)
 					remove_kitten(j)
 					score = score - 1
+					update_score()
+				end
+			end
+			for j, dog in ipairs(dogs) do
+				if check_collision(dog, explosion) then
+					local deathSound = love.audio.newSource("sounds/doghurt"..math.random(1,2)..".mp3", "stream")
+					love.audio.play(deathSound)
+					remove_dog(j)
+					score = score +1
 					update_score()
 				end
 			end
