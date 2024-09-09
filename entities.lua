@@ -216,8 +216,8 @@ function generate_new_explosion(spawnX, spawnY)
 		timer = 1,
 		x = spawnX,
 		y = spawnY,
-		width = 200,
-		height = 200,
+		width = 250,
+		height = 250,
 		anim = love.graphics.newImage("images/props/explosion.png")
 	}
 	table.insert(explosions, new_explosion)
