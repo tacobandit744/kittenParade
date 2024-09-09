@@ -216,8 +216,8 @@ function generate_new_explosion(spawnX, spawnY)
 		timer = 1,
 		x = spawnX,
 		y = spawnY,
-		width = 100,
-		height = 100,
+		width = 200,
+		height = 200,
 		anim = love.graphics.newImage("images/props/explosion.png")
 	}
 	table.insert(explosions, new_explosion)
@@ -279,7 +279,8 @@ function move_grenades(dt)
 					local deathSound = love.audio.newSource("sounds/doghurt"..math.random(1,2)..".mp3", "stream")
 					love.audio.play(deathSound)
 					remove_dog(j)
-					score = score +1
+					currDogsOnScreen = currDogsOnScreen - 1
+					score = score + 1
 					update_score()
 				end
 			end
