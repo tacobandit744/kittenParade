@@ -266,7 +266,7 @@ function move_grenades(dt)
 			explosion = generate_new_explosion(grenade.x, grenade.y)
 			remove_grenade(i)
 			for j, kitten in ipairs(kittens) do
-				if check_collision(kitten, explosion) then
+				if check_explosion_radius(explosion, kitten) then
 					local deathSound = love.audio.newSource("sounds/gib"..math.random(1,2)..".mp3", "stream")
 					love.audio.play(deathSound)
 					remove_kitten(j)
@@ -275,7 +275,7 @@ function move_grenades(dt)
 				end
 			end
 			for j, dog in ipairs(dogs) do
-				if check_collision(dog, explosion) then
+				if check_explosion_radius(explosion, dog) then
 					local deathSound = love.audio.newSource("sounds/doghurt"..math.random(1,2)..".mp3", "stream")
 					love.audio.play(deathSound)
 					remove_dog(j)
@@ -344,6 +344,13 @@ function resolve_collision(a, b)
             a.y = a.y + pushback
         end
 	end
+end
+
+function check_explosion_radius(explosive, object)
+	return explosive.x + (explosive.width/2) > object.x
+	and explosive.x - (explosive.width/2) < object.x + object.width
+    and explosive.y + (explosive.height/2) > object.y
+    and explosive.y - (explosive.width/2) < object.y + object.height
 end
 
 function resolve_elastic_collision(a, b)
