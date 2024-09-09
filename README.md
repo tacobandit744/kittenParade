@@ -1,6 +1,1 @@
-Instructions to come...
-
-Core concept
-1) You are a last minute bodyguard, protecting a parade of kittens.
-2) A gang of dogs has decided to rain grenades upon the kittens
-3) You must hit the grenades away with a tennis racket
+You are a yellow rectangle. You guard the space kittens. Evil space dogs will try and destroy them before they can reach teh space portal. Block their evil doggy grenades. You get 1 point for guarding teh kittehs and 1 point for blowing up teh evil doggos. You lose 1 point for every kitten that asplodses. wasd to move, mouse to move your divine racket.
